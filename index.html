@@ -1,0 +1,71 @@
+<h2>Unsere letzten Titel</h2>
+<div id="song-history">
+  <ul id="song-history-list"></ul>
+</div>
+
+<h2>Now Playing:</h2>
+<p id="song-text" class="song-text text-center"></p>
+
+<script>
+  // Selektieren der DOM-Elemente, in welche die Informationen eingefügt werden sollen
+  const songText = document.getElementById('song-text');
+  const historyList = document.getElementById('song-history');
+  const liveStatus = document.getElementById('live-status');
+
+  // Zähler für Anzahl der Anfragen
+  let count = 0;
+
+  // Funktion, welche die Informationen aus der API abruft und in die DOM-Elemente einfügt
+  function updateInfo() {
+    fetch('APIURL der Azuracast Station')
+      .then(response => response.json())
+      .then(data => {
+        // Aktuellen Song einfügen
+        const currentSong = data.now_playing.song.text;
+        if (songText) {
+          songText.textContent = currentSong;
+        }
+
+        // Song-History einfügen
+        const history = data.song_history;
+        if (historyList) {
+          historyList.innerHTML = '';
+          history.forEach(song => {
+            const songText = song.song.text;
+            const listItem = document.createElement('li');
+            listItem.textContent = songText;
+            historyList.appendChild(listItem);
+          });
+        }
+
+        // Live-Status einfügen
+        const isLive = data.live.is_live;
+        if (liveStatus) {
+          liveStatus.textContent = isLive ? 'Live' : 'Nicht Live';
+        }
+
+        // Inkrementieren des Anfragezählers
+        count++;
+
+        // Wenn der Anfragezähler 30 erreicht hat, setze ihn zurück und lösche die DOM-Elemente
+        if (count === 30) {
+          count = 0;
+          if (songText) {
+            songText.textContent = '';
+          }
+          if (historyList) {
+            historyList.innerHTML = '';
+          }
+          if (liveStatus) {
+            liveStatus.textContent = '';
+          }
+        }
+      })
+      .catch(error => console.error(error));
+  }
+
+  // Initialisierung und Aktualisierung des Skripts
+  updateInfo();
+  setInterval(updateInfo, 30000);
+
+</script>
